@@ -1,0 +1,44 @@
+
+
+button {
+    color: black;
+    background-color: rgb(136, 136, 136);
+}
+
+button:hover{
+    background-color: #e4e4e4;
+    color: rgb(70, 70, 70);
+}
+
+.hard {
+    padding: 2em;
+    text-align: center;
+}
+
+.hard h2 {
+    margin-bottom: 1em;
+    font-size: 2em;
+    color: #333;
+}
+
+.hard ul {
+    list-style-type: none; 
+    padding: none; 
+    display: flex;
+    justify-content: center; 
+    flex-wrap: wrap; 
+}
+
+.hard li {
+    display: flex;
+    align-items: center;
+    margin: 1em; 
+    font-size: 1em;
+    color: #555;
+}
+
+.hard li svg {
+    margin-right: .5em; 
+    font-size: 2em; 
+    color: #007acc; 
+}

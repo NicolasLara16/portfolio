@@ -1,0 +1,25 @@
+.container {
+    display: flex;
+    flex-direction: column; /* Empilha os itens verticalmente */
+    justify-content: center; /* Centraliza verticalmente */
+    align-items: center; /* Centraliza horizontalmente */
+    text-align: center;
+    min-height: 100vh; /* Garante que o conteúdo ocupe pelo menos a altura da tela */
+}
+
+h1 {
+    color: black;
+}
+
+p {
+    color: black;
+    font-size: 1em;
+    margin-top: 2em;
+}
+
+img {
+    border-radius: 50%;
+    width: 20em;
+    height: 20em;
+    margin-bottom: 1em; /* Espaçamento inferior */
+}
