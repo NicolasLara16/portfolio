@@ -23,3 +23,20 @@ img {
     height: 20em;
     margin-bottom: 1em; /* Espaçamento inferior */
 }
+
+.redes{
+    display: flex;
+    justify-content: space-around;
+    margin-top: 2em;
+}
+
+    button {
+        margin-top: 2em;
+        padding: 1em 2em;
+        background-color: white;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        display: block;
+    }
