@@ -1,36 +1,145 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Portfólio Profissional Dinâmico — Nicolas Gerardo Chagas Lara
 
-## Getting Started
+Portfólio pessoal com **gerenciamento de conteúdo via painel administrativo**.
+Construído com **Next.js (App Router) + Tailwind CSS v4 + Firebase (Authentication, Cloud Firestore e Storage)**.
 
-First, run the development server:
+## Funcionalidades
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- **Rota pública `/`**: Sobre Mim, Habilidades (hard skills dinâmicas + soft skills), Certificações, Projetos (modal com detalhes) e Contato — todas carregadas em tempo real do Firestore.
+- **Rota protegida `/admin`**: login com e-mail/senha (Firebase Auth) e abas de CRUD para Perfil & Contato (Sobre Mim, formação, redes), Hard Skills, Soft Skills, Certificações (com upload de comprovante p/ Storage) e Projetos.
+- **Segurança**: Firestore/Storage Rules com leitura pública e escrita restrita ao UID do admin; inputs sanitizados (anti-XSS); credenciais só via variáveis de ambiente.
+- **SEO**: meta tags dinâmicas, Open Graph/Twitter Card com imagem gerada, `sitemap.xml` e `robots.txt`.
+- **Design**: dark mode tech (azul escuro/grafite com acentos ciano e verde), responsivo (menu hamburger) e animações de scroll.
+
+## Estrutura do Projeto
+
+```
+src/
+├── app/
+│   ├── layout.tsx            # Metadata (SEO), fontes, tema
+│   ├── page.tsx              # Portfólio público
+│   ├── opengraph-image.tsx   # Imagem OG gerada dinamicamente
+│   ├── sitemap.ts / robots.ts
+│   └── admin/page.tsx        # Painel (login ou dashboard)
+├── components/
+│   ├── public/               # Navbar, Hero, Skills, Certifications, Projects, Contact, Footer
+│   ├── admin/                # LoginForm, Dashboard, gerenciadores CRUD
+│   └── shared/               # Reveal (animação), EmptyState, botões
+├── data/profile.ts           # Dados fixos do perfil (nome, links, formação)
+├── hooks/                    # useAuth, useCollection (onSnapshot)
+└── lib/                      # firebase.ts, services.ts, sanitize.ts, types.ts, iconMap.ts
+scripts/seed.mjs              # Popula o Firestore com os dados iniciais
+firestore.rules / storage.rules  # Regras de segurança
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Configuração do Firebase (passo a passo)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 1. Criar o projeto
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. Acesse o [Console do Firebase](https://console.firebase.google.com) e clique em **Adicionar projeto**.
+2. Após criar, entre em **Configurações do projeto → Seus apps** e registre um app **Web** (`</>`).
+3. Copie o objeto `firebaseConfig` exibido.
 
-## Learn More
+### 2. Variáveis de ambiente
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+cp .env.example .env.local
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Preencha em `.env.local`:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| Variável | Valor |
+|---|---|
+| `NEXT_PUBLIC_FIREBASE_API_KEY` | `apiKey` do firebaseConfig |
+| `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN` | `authDomain` |
+| `NEXT_PUBLIC_FIREBASE_PROJECT_ID` | `projectId` |
+| `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET` | `storageBucket` |
+| `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID` | `messagingSenderId` |
+| `NEXT_PUBLIC_FIREBASE_APP_ID` | `appId` |
+| `NEXT_PUBLIC_SITE_URL` | URL pública (ex.: `https://seudominio.com`) |
 
-## Deploy on Vercel
+> O `.env.local` **nunca** deve ser commitado (já está no `.gitignore`).
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### 3. Ativar o Authentication
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Console → **Authentication → Get started**.
+2. Aba **Sign-in method** → habilite **Email/Password**.
+3. Aba **Users** → **Add user**: cadastre seu e-mail e uma senha forte.
+   Esse será o **único usuário admin**. Copie o **User UID** gerado.
+
+### 4. Criar o Firestore
+
+1. Console → **Firestore Database → Create database** (modo produção).
+2. Região: `southamerica-east1` (São Paulo) ou a de sua preferência.
+
+### 5. (Opcional, para upload de certificados) Ativar o Storage
+
+Console → **Storage → Get started** (modo produção).
+
+### 6. Publicar as regras de segurança
+
+Abra `firestore.rules` e `storage.rules` e substitua **`UID_DO_ADMIN`** pelo UID copiado no passo 3. Depois publique:
+
+- **Firestore**: Console → Firestore Database → **Rules** → cole o conteúdo de `firestore.rules` → **Publish**.
+- **Storage**: Console → Storage → **Rules** → cole o conteúdo de `storage.rules` → **Publish**.
+
+Ou via CLI:
+
+```bash
+npm i -g firebase-tools
+firebase login
+firebase deploy --only firestore:rules,storage
+```
+
+(Configure `.firebaserc`/`firebase.json` se for usar a CLI.)
+
+### 7. Popular o banco (seed)
+
+Com `.env.local` preenchido **incluindo `ADMIN_EMAIL` e `ADMIN_PASSWORD`** (a mesma conta criada no passo 3):
+
+```bash
+npm run seed
+```
+
+O script popula o documento `profile/main` e as coleções `skills`, `softSkills`, `certifications` e `projects` — **somente se estiverem vazios**.
+
+## Rodando o projeto
+
+```bash
+npm install
+npm run dev      # http://localhost:3000
+```
+
+| Comando | Descrição |
+|---|---|
+| `npm run dev` | Servidor de desenvolvimento |
+| `npm run build` | Build de produção |
+| `npm run lint` | ESLint |
+| `npm run seed` | Popula o Firestore com dados iniciais |
+
+## Uso do painel admin
+
+1. Acesse `/admin` (ou o ícone de cadeado na navbar/rodapé).
+2. Entre com o e-mail/senha do admin.
+3. Use as abas para:
+   - **Hard Skills**: adicionar/editar/remover tecnologias, categoria, ícone e nível (Iniciante, Intermediário ou Avançado);
+   - **Soft Skills**: adicionar/remover tags de competências;
+   - **Certificações**: curso, instituição, carga horária, data e link **ou** upload do comprovante (PDF/imagem até 10 MB);
+   - **Projetos**: título, descrição, tecnologias (tags), GitHub e demo.
+4. As alterações aparecem no site em tempo real (Firestore `onSnapshot`).
+
+## Deploy
+
+A forma mais simples é a [Vercel](https://vercel.com):
+
+1. Faça push do repositório para o GitHub.
+2. Importe o projeto na Vercel.
+3. Adicione **todas** as variáveis do `.env.local` em *Settings → Environment Variables* (ajuste `NEXT_PUBLIC_SITE_URL` para a URL de produção).
+4. Deploy. ✅
+
+## Personalização
+
+- **Perfil/formação/links**: editáveis pelo painel admin (aba "Perfil & Contato", documento `profile/main`). Os valores padrão ficam em `src/data/profile.ts` (⚠️ atualize as URLs de LinkedIn/GitHub de exemplo pelas suas reais).
+- **Cores/tema**: ajuste os tokens em `src/app/globals.css` (`@theme`).
+- **Ícones de skills**: mapa em `src/lib/iconMap.ts`.
+- **Coleções do Firestore**: `profile` (doc `main`), `skills`, `softSkills`, `certifications`, `projects`.
