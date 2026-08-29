@@ -128,14 +128,32 @@ npm run dev      # http://localhost:3000
    - **Projetos**: título, descrição, tecnologias (tags), GitHub e demo.
 4. As alterações aparecem no site em tempo real (Firestore `onSnapshot`).
 
-## Deploy
+## Deploy (Firebase Hosting)
 
-A forma mais simples é a [Vercel](https://vercel.com):
+O projeto usa **exportação estática** (`output: "export"` no `next.config.ts`), então roda no plano gratuito (Spark) do Firebase.
 
-1. Faça push do repositório para o GitHub.
-2. Importe o projeto na Vercel.
-3. Adicione **todas** as variáveis do `.env.local` em *Settings → Environment Variables* (ajuste `NEXT_PUBLIC_SITE_URL` para a URL de produção).
-4. Deploy. ✅
+1. Instale a CLI e faça login:
+
+   ```bash
+   npm i -g firebase-tools
+   firebase login
+   ```
+
+2. Configure o projeto padrão (`.firebaserc` já aponta para `portfolio-cacef`).
+
+3. Deploy — o build roda automaticamente no predeploy:
+
+   ```bash
+   firebase deploy --only hosting          # site
+   firebase deploy --only firestore:rules  # regras do Firestore
+   firebase deploy --only storage:rules    # regras do Storage
+   # ou tudo de uma vez:
+   firebase deploy
+   ```
+
+4. Site disponível em `https://portfolio-cacef.web.app`.
+
+> Recomendado: adicione o domínio `portfolio-cacef.web.app` em **Firebase Console → Authentication → Settings → Authorized domains**.
 
 ## Personalização
 
